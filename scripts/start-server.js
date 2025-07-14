@@ -29,7 +29,7 @@ server.listen(port, '0.0.0.0', () => {
 
     if (shouldOpen) {
         console.log('Opening browser...');
-        exec(`open ${url}`, error => {
+        exec(`open ${url}`, (error) => {
             if (error) {
                 console.log(`Could not open browser: ${error.message}`);
                 console.log(`Please open ${url} manually`);

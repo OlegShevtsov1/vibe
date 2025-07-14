@@ -41,7 +41,7 @@ services:
             - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
         volumes:
             - '.:/code'
-            - '/dev/shm:/dev/shm'  # Shared memory for Chrome
+            - '/dev/shm:/dev/shm' # Shared memory for Chrome
         working_dir: /code
         command: ['npm', 'run', 'test:e2e']
-        profiles: ['test']  #
+        profiles: ['test'] #

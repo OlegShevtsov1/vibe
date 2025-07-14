@@ -33,5 +33,5 @@ if (process.env.JEST_DEBUG !== 'true') {
 // Clean up after each test
 afterEach(async () => {
     // Small delay to ensure proper cleanup
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 });

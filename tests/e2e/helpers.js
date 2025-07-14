@@ -17,9 +17,11 @@ async function waitForClickable(page, selector, timeout = 5000) {
 
     // Ensure element is clickable
     await page.waitForFunction(
-        sel => {
+        (sel) => {
             const el = document.querySelector(sel);
-            if (!el) return false;
+            if (!el) {
+                return false;
+            }
             const rect = el.getBoundingClientRect();
             return rect.width > 0 && rect.height > 0;
         },
@@ -62,8 +64,8 @@ async function waitForText(page, selector, text, timeout = 5000) {
  * @returns {Promise<string[]>}
  */
 async function getAllTextContent(page, selector) {
-    return await page.$$eval(selector, elements =>
-        elements.map(el => el.textContent.trim())
+    return await page.$$eval(selector, (elements) =>
+        elements.map((el) => el.textContent.trim())
     );
 }
 
@@ -119,7 +121,7 @@ async function typeWithDelay(page, selector, text, delay = 50) {
 async function getJavaScriptErrors(page) {
     const errors = [];
 
-    page.on('pageerror', error => {
+    page.on('pageerror', (error) => {
         errors.push(error.message);
     });
 
@@ -177,7 +179,7 @@ const getAvailablePort = () => {
  * @param {string} runId - Unique run identifier
  * @returns {string} Screenshots directory path
  */
-const createScreenshotsDir = runId => {
+const createScreenshotsDir = (runId) => {
     const baseDir = path.join(process.cwd(), 'artifacts', 'screenshots');
     const runDir = path.join(baseDir, runId);
 
@@ -323,11 +325,11 @@ const cleanupOldScreenshots = (keepRuns = 5) => {
 
     const runs = fs
         .readdirSync(screenshotsDir)
-        .filter(item => {
+        .filter((item) => {
             const itemPath = path.join(screenshotsDir, item);
             return fs.statSync(itemPath).isDirectory();
         })
-        .map(item => ({
+        .map((item) => ({
             name: item,
             path: path.join(screenshotsDir, item),
             time: fs.statSync(path.join(screenshotsDir, item)).ctime,
@@ -336,7 +338,7 @@ const cleanupOldScreenshots = (keepRuns = 5) => {
 
     const runsToDelete = runs.slice(keepRuns);
 
-    runsToDelete.forEach(run => {
+    runsToDelete.forEach((run) => {
         fs.rmSync(run.path, { recursive: true, force: true });
         console.log(`🗑️ Cleaned up old screenshots: ${run.name}`);
     });

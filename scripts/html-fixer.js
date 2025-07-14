@@ -27,7 +27,7 @@ function fixHtml(content) {
     content = content.replace(/<!doctype\s+html>/i, '<!DOCTYPE html>');
 
     // Fix void elements - remove self-closing slashes
-    voidElements.forEach(element => {
+    voidElements.forEach((element) => {
         const pattern = new RegExp(`<${element}([^>]*?)\\s*\\/>`, 'gi');
         content = content.replace(pattern, `<${element}$1>`);
     });
