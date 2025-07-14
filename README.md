@@ -100,6 +100,22 @@ JEST_DEBUG=true npm run test:file tests/app.test.js  # Run specific test file
 npm run test:name "should handle missing message element gracefully"n specific test by name
 ```
 
+```E2E
+npm run test:e2e          # ALL (9.3s)
+npm run test:e2e:visual   # Visual mode
+npm run test:e2e:debug    # Debug mode
+npm run test:e2e:fast     # Fast mode
+
+HEADLESS=false SLOWMO=100 npx jest tests/e2e/app.e2e.test.js --testNamePattern="should display success message" --testTimeout=30000 --testEnvironment=node
+
+
+# Single test with screenshot
+SCREENSHOT_ON_SUCCESS=true npx jest tests/e2e/app.e2e.test.js --testNamePattern="should load the main page" --testTimeout=30000 --testEnvironment=node
+
+# Visual test with slow motion + single test with screenshot
+HEADLESS=false SLOWMO=100 SCREENSHOT_ON_SUCCESS=true npx jest tests/e2e/app.e2e.test.js --testNamePattern="should load the main page" --testTimeout=30000 --testEnvironment=node
+```
+
 ## Code Quality
 
 ```bash
@@ -109,6 +125,12 @@ npm run lint:html             # Check HTML validation
 npm run lint:all              # Check both JavaScript and HTML
 npm run format                # Auto-format code
 npm run format:check          # Check formatting
+```
+
+```bash
+npm run  lint:html:fix
+npm run  lint:html:fix:all
+npm run  lint:html:autofix
 ```
 
 ### Security & Performance

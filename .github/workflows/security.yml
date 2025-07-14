@@ -1,0 +1,36 @@
+name: Security
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+    schedule:
+        # Run weekly on Sundays at 2 AM UTC
+        - cron: '0 2 * * 0'
+
+jobs:
+    security:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22.x'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Setup environment
+              uses: ./.github/actions/setup-env
+
+            - name: Run security scan
+              run: npm run security
+              env:
+                  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+              continue-on-error: true
