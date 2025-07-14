@@ -28,10 +28,15 @@
         "dev": "node scripts/start-server.js --no-open",
         "lint": "eslint js/**/*.js",
         "lint:fix": "eslint js/**/*.js --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "check:package-lock": "node scripts/check-package-lock.js",
         "lint:html": "html-validate index.html",
         "lint:html:fix": "node scripts/html-fixer.js index.html",
         "lint:html:fix:all": "node scripts/html-fixer.js --all",
-        "lint:all": "npm run lint && npm run lint:html"
+        "lint:html:autofix": "npm run lint:html:fix && npm run lint:html",
+        "lint:all": "npm run lint && npm run lint:html",
+        "prepare": "husky"
     },
     "keywords": [
         "javascript",
@@ -50,14 +55,31 @@
         "@jest/globals": "^29.7.0",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^9.1.0",
-        "html-validate": "^8.0.0",
+        "html-validate": "^8.24.1",
+        "husky": "^9.1.7",
         "jest": "^29.7.0",
-        "jest-environment-jsdom": "^30.0.4",
+        "jest-environment-jsdom": "^29.7.0",
         "lighthouse": "^12.0.0",
+        "lint-staged": "^16.1.2",
         "node-html-parser": "^7.0.1",
         "prettier": "^3.2.5",
         "puppeteer": "^22.15.0",
         "snyk": "^1.1291.0"
+    },
+    "lint-staged": {
+        "*.{html,htm}": [
+            "html-validate"
+        ],
+        "*.js": [
+            "eslint",
+            "prettier --check"
+        ],
+        "*.{css,scss,json,md}": [
+            "prettier --check"
+        ],
+        "package.json": [
+            "node scripts/check-package-lock.js"
+        ]
     },
     "jest": {
         "testEnvironment": "jsdom",

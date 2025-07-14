@@ -1,0 +1,103 @@
+name: Performance Tests
+
+on:
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+    schedule:
+        - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+
+jobs:
+    performance:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Start server
+              run: npm run start &
+              env:
+                  PORT: 8080
+
+            - name: Wait for server
+              run: |
+                  echo "Waiting for server to start on port 8080..."
+                  timeout 60 bash -c 'until curl -s http://localhost:8080; do 
+                    echo "Server not ready yet, waiting..."; 
+                    sleep 2; 
+                  done'
+                  echo "Server is ready!"
+
+            - name: Analyze bundle size
+              run: |
+                  echo "=== Bundle Size Analysis ==="
+
+                  # CSS files
+                  echo "CSS files:"
+                  find css/ -name "*.css" -exec wc -c {} + | sort -n
+
+                  # JS files
+                  echo -e "\nJS files:"
+                  find js/ -name "*.js" -exec wc -c {} + | sort -n
+
+                  # Total size
+                  echo -e "\nTotal size:"
+                  du -ch css/ js/ | tail -1
+
+                  # Gzipped size
+                  echo -e "\nGzipped sizes:"
+                  for file in css/*.css js/*.js; do
+                    if [ -f "$file" ]; then
+                      original=$(wc -c < "$file")
+                      gzipped=$(gzip -c "$file" | wc -c)
+                      echo "$file: $original bytes → $gzipped bytes ($(echo "scale=1; $gzipped*100/$original" | bc)%)"
+                    fi
+                  done
+
+            - name: Check size limits
+              run: |
+                  # Define size limits (in bytes)
+                  CSS_LIMIT=50000  # 50KB
+                  JS_LIMIT=100000  # 100KB
+
+                  css_size=$(find css/ -name "*.css" -exec cat {} + | wc -c)
+                  js_size=$(find js/ -name "*.js" -exec cat {} + | wc -c)
+
+                  echo "CSS size: $css_size bytes (limit: $CSS_LIMIT)"
+                  echo "JS size: $js_size bytes (limit: $JS_LIMIT)"
+
+                  if [ $css_size -gt $CSS_LIMIT ]; then
+                    echo "❌ CSS size exceeds limit!"
+                    exit 1
+                  fi
+
+                  if [ $js_size -gt $JS_LIMIT ]; then
+                    echo "❌ JS size exceeds limit!"
+                    exit 1
+                  fi
+
+                  echo "✅ All size checks passed!"
+
+            - name: Run Lighthouse CI
+              run: |
+                  npm install -g @lhci/cli@0.12.x
+                  lhci autorun
+              env:
+                  LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+            - name: Upload Lighthouse results
+              uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: lighthouse-results
+                  path: .lighthouseci/

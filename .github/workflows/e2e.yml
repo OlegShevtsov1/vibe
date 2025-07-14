@@ -1,106 +1,68 @@
-name: E2E Tests with Screenshots
+name: E2E Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main, develop]
+
+permissions:
+    contents: read
 
 jobs:
-  e2e-tests:
-    runs-on: ubuntu-latest
-    
-    services:
-      app:
-        image: node:18-alpine
-        options: >-
-          --health-cmd "curl -f http://localhost:8080 || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        cache: 'npm'
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Install Puppeteer dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y chromium-browser
-        
-    - name: Run E2E tests with screenshots
-      run: |
-        export GITHUB_RUN_ID=${{ github.run_id }}
-        export SCREENSHOT_ON_SUCCESS=true
-        export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-        npm run test:e2e:screenshots
-      env:
-        CI: true
-        NODE_ENV: test
-    
-    - name: Upload screenshots on failure
-      if: failure()
-      uses: actions/upload-artifact@v3
-      with:
-        name: e2e-screenshots-failure-${{ github.run_id }}
-        path: artifacts/screenshots/
-        retention-days: 7
-    
-    - name: Upload screenshots on success
-      if: success()
-      uses: actions/upload-artifact@v3
-      with:
-        name: e2e-screenshots-success-${{ github.run_id }}
-        path: artifacts/screenshots/
-        retention-days: 3
-    
-    - name: Upload test reports
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: test-reports-${{ github.run_id }}
-        path: |
-          artifacts/reports/
-          artifacts/logs/
-        retention-days: 7
-    
-    - name: Comment PR with test results
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const fs = require('fs');
-          const path = require('path');
-          
-          // Check if artifacts directory exists
-          const artifactsDir = path.join(process.cwd(), 'artifacts', 'screenshots');
-          if (fs.existsSync(artifactsDir)) {
-            const files = fs.readdirSync(artifactsDir, { recursive: true });
-            const screenshotCount = files.filter(f => f.endsWith('.png')).length;
-            
-            const comment = `
-            ## 🎭 E2E Test Results
-            
-            - **Screenshots captured**: ${screenshotCount}
-            - **Artifacts uploaded**: ✅
-            - **View artifacts**: [Download here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            
-            ${screenshotCount > 0 ? '📸 Screenshots available in artifacts for review' : ''}
-            `;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
-          } 
+    e2e-tests:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+                  cache: 'npm'
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Install Puppeteer dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y chromium-browser
+
+            - name: Run E2E tests with screenshots
+              run: |
+                  export GITHUB_RUN_ID=${{ github.run_id }}
+                  export SCREENSHOT_ON_SUCCESS=true
+                  export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+                  npm run test:e2e:screenshots
+              env:
+                  CI: true
+                  NODE_ENV: test
+
+            - name: Upload screenshots on failure
+              if: failure()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: e2e-screenshots-failure-${{ github.run_id }}
+                  path: artifacts/screenshots/
+                  retention-days: 7
+
+            - name: Upload screenshots on success
+              if: success()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: e2e-screenshots-success-${{ github.run_id }}
+                  path: artifacts/screenshots/
+                  retention-days: 3
+
+            - name: Upload test reports
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-reports-${{ github.run_id }}
+                  path: |
+                      artifacts/reports/
+                      artifacts/logs/
+                  retention-days: 7

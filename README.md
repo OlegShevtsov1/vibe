@@ -127,6 +127,12 @@ npm run format                # Auto-format code
 npm run format:check          # Check formatting
 ```
 
+```bash
+npm run  lint:html:fix
+npm run  lint:html:fix:all
+npm run  lint:html:autofix
+```
+
 ### Security & Performance
 
 ```bash
