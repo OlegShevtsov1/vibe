@@ -1,0 +1,45 @@
+version: 2
+updates:
+    # Enable version updates for npm
+    - package-ecosystem: 'npm'
+      directory: '/'
+      schedule:
+          interval: 'weekly'
+          day: 'monday'
+          time: '09:00'
+      open-pull-requests-limit: 10
+      reviewers:
+          - '@me'
+      assignees:
+          - '@me'
+      commit-message:
+          prefix: 'npm'
+          prefix-development: 'npm-dev'
+          include: 'scope'
+
+    # Enable security updates (runs daily)
+    - package-ecosystem: 'npm'
+      directory: '/'
+      schedule:
+          interval: 'daily'
+      open-pull-requests-limit: 5
+      target-branch: 'develop'
+      reviewers:
+          - '@me'
+      labels:
+          - 'dependencies'
+          - 'security'
+      commit-message:
+          prefix: 'security'
+          include: 'scope'
+
+    # Monitor GitHub Actions
+    - package-ecosystem: 'github-actions'
+      directory: '/'
+      schedule:
+          interval: 'monthly'
+      open-pull-requests-limit: 3
+      labels:
+          - 'github-actions'
+      commit-message:
+          prefix: 'ci'

@@ -1,0 +1,9 @@
+name: 'Setup Environment'
+description: 'Setup environment variables from .env.example'
+runs:
+    using: 'composite'
+    steps:
+        - name: Setup environment
+          run: |
+              cp .env.example .env || echo "No .env.example found, skipping..."
+          shell: bash

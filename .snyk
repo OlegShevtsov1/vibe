@@ -1,0 +1,19 @@
+# Snyk (https://snyk.io) policy file
+# This file contains configurations for Snyk security scans
+# To authenticate: npx snyk auth
+
+# Example of ignoring specific vulnerabilities:
+# patches: {}
+# ignore:
+#   SNYK-JS-LODASH-567746:
+#     - lodash:
+#         reason: 'False positive, not exploitable in our context'
+#         expires: '2024-12-31T23:59:59.000Z'
+
+# Language settings
+language-settings:
+    javascript:
+        packageManager: npm
+
+# Severity threshold
+severity-threshold: high

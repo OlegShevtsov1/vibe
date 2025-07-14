@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+    # Frontend Service
+    app:
+        build:
+            context: .
+            dockerfile: .docker/app.Dockerfile
+        ports:
+            - '${PORT:-8080}:8080'
+        environment:
+            - NODE_ENV=${NODE_ENV:-development}
+            - PORT=8080
+            - API_URL=${API_URL:-http://localhost:3000}
+            - SNYK_TOKEN=${SNYK_TOKEN}
+            - LIGHTHOUSE_OUTPUT_PATH=${LIGHTHOUSE_OUTPUT_PATH:-./reports/lighthouse}
+        volumes:
+            # Mount entire project
+            - '.:/code'
+
+        healthcheck:
+            test:
+                ['CMD', 'sh', '-c', 'curl -f http://localhost:$$PORT || exit 1']
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+        restart: unless-stopped
