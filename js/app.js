@@ -5,7 +5,7 @@
  * Application configuration
  */
 const APP_CONFIG = {
-    apiUrl: 'http://localhost:3000',
+    apiUrl: window.ENV_API_URL || 'http://localhost:3000',
 };
 
 /**

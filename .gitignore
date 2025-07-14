@@ -80,3 +80,9 @@ logs
 # Allow scripts directory but ignore temp files
 !scripts/
 scripts/temp*
+
+# Test artifacts
+artifacts/
+screenshots/
+test-results/
+reports/

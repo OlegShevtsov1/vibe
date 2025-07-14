@@ -26,3 +26,22 @@ services:
             retries: 3
             start_period: 40s
         restart: unless-stopped
+
+    # E2E Testing Service
+    e2e:
+        build:
+            context: .
+            dockerfile: .docker/e2e.Dockerfile
+        depends_on:
+            - app
+        environment:
+            - NODE_ENV=test
+            - BASE_URL=http://app:${PORT:-8080}
+            - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+            - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+        volumes:
+            - '.:/code'
+            - '/dev/shm:/dev/shm'  # Shared memory for Chrome
+        working_dir: /code
+        command: ['npm', 'run', 'test:e2e']
+        profiles: ['test']  #
