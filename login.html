@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Login - Vibe Application</title>
+        <!-- Rest of head will be injected by components.js -->
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header will be injected here -->
+            <div id="header-container"></div>
+
+            <!-- Main Content -->
+            <main>
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h2 class="card-title text-center mb-4">
+                                    <i                                         class="bi bi-person-circle text-primary"
+                                    ></i>
+                                    Sign In
+                                </h2>
+
+                                <form id="login-form">
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label"
+                                            >Email</label>
+                                        <input                                             type="email"
+                                            class="form-control"
+                                            id="email"
+                                            required
+                                            autocomplete="email"
+                                            placeholder="Enter your email">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label"
+                                            >Password</label>
+                                        <div class="input-group">
+                                            <input                                                 type="password"
+                                                class="form-control"
+                                                id="password"
+                                                required
+                                                autocomplete="current-password"
+                                                placeholder="Enter your password">
+                                            <button                                                 class="btn btn-outline-secondary"
+                                                type="button"
+                                                id="toggle-password"
+                                                aria-label="Toggle password visibility"
+                                            >
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-grid">
+                                        <button                                             type="submit"
+                                            class="btn btn-primary"
+                                            id="loginButton"
+                                        >
+                                            Sign In
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div id="message" class="mt-3"></div>
+
+                                <div class="text-center mt-4">
+                                    <p class="mb-0">
+                                        Don't have an account?
+                                        <a                                             href="register.html"
+                                            class="text-decoration-none"
+                                            >Create one</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Footer will be injected here -->
+            <div id="footer-container"></div>
+        </div>
+
+        <!-- Initialize page components -->
+        <script src="js/components.js"></script>
+        <script src="js/config.js"></script>
+        <script src="js/auth.js"></script>
+        <script src="js/login.js"></script>
+        <script>
+            HTMLComponents.initPage({
+                activePage: 'login',
+                title: 'Login - Vibe Application',
+                description: 'Sign in to your Vibe Application account',
+            });
+        </script>
+    </body>
+</html>

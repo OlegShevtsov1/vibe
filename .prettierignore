@@ -1,0 +1,9 @@
+# Exclude coverage reports
+coverage/
+
+# Exclude build artifacts
+artifacts/
+reports/
+
+# Exclude temporary files
+tmp/ 

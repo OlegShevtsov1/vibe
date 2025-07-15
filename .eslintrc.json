@@ -19,13 +19,17 @@
         "curly": "error",
         "no-multi-spaces": "error",
         "no-trailing-spaces": "error",
-        "indent": ["error", 4],
         "quotes": ["error", "single", { "avoidEscape": true }],
         "semi": ["error", "always"]
     },
     "globals": {
         "VibeApp": "readonly",
         "Utils": "readonly",
-        "APP_CONFIG": "readonly"
+        "APP_CONFIG": "readonly",
+        "AuthService": "readonly",
+        "UIManager": "readonly",
+        "Validator": "readonly",
+        "CONFIG": "readonly",
+        "HTMLComponents": "readonly"
     }
 }

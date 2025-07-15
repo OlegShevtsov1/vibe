@@ -5,7 +5,6 @@ const fs = require('fs');
 const {
     getAvailablePort,
     takeScreenshot,
-    takeFailureScreenshot,
     generateRunId,
     cleanupOldScreenshots,
 } = require('./helpers');
@@ -93,7 +92,7 @@ describe('Vibe Application E2E Tests', () => {
             });
         });
 
-        await new Promise(resolve => {
+        await new Promise((resolve) => {
             server.listen(PORT, resolve);
         });
 
@@ -133,7 +132,7 @@ describe('Vibe Application E2E Tests', () => {
         currentTestName = expect.getState().currentTestName;
 
         // Listen for console logs
-        page.on('console', msg => {
+        page.on('console', (msg) => {
             if (process.env.JEST_DEBUG === 'true') {
                 console.log('PAGE LOG:', msg.text());
             }
@@ -144,7 +143,6 @@ describe('Vibe Application E2E Tests', () => {
     afterEach(async () => {
         if (page) {
             // Take screenshot based on test result
-            const testResult = expect.getState().currentTestName;
             const hasErrors =
                 expect.getState().assertionCalls > 0 &&
                 expect.getState().assertionCalls !==
@@ -165,9 +163,43 @@ describe('Vibe Application E2E Tests', () => {
         }
     });
 
+    // Helper function to wait for dynamic content to load
+    const waitForDynamicContent = async () => {
+        try {
+            // Wait for page to be ready and scripts loaded
+            await page.waitForFunction(
+                () => document.readyState === 'complete',
+                { timeout: 5000 }
+            );
+
+            // Give a moment for script execution
+            await page.waitForTimeout(1000);
+
+            // Check if containers have content
+            await page.waitForFunction(
+                () => {
+                    const header = document.querySelector('#header-container');
+                    const footer = document.querySelector('#footer-container');
+                    return (
+                        header &&
+                        footer &&
+                        header.children.length > 0 &&
+                        footer.children.length > 0
+                    );
+                },
+                { timeout: 5000 }
+            );
+        } catch (error) {
+            console.log(
+                'Warning: Dynamic content loading timeout, continuing with test...'
+            );
+        }
+    };
+
     describe('Page Loading', () => {
         test('should load the main page successfully', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             const title = await page.title();
             expect(title).toBe('Vibe Application');
@@ -175,21 +207,26 @@ describe('Vibe Application E2E Tests', () => {
 
         test('should display main header', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
-            const headerText = await page.$eval('h1', el => el.textContent);
-            expect(headerText).toBe('Vibe Application');
+            // Header is now in the header-container
+            const headerText = await page.$eval('#header-container h1', (el) =>
+                el.textContent.trim()
+            );
+            expect(headerText).toContain('Vibe Application');
         });
 
         test('should display welcome card', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             const cardTitle = await page.$eval(
                 '.card-title',
-                el => el.textContent
+                (el) => el.textContent
             );
             expect(cardTitle).toBe('Hello World!');
 
-            const cardText = await page.$eval('.card-text', el =>
+            const cardText = await page.$eval('.card-text', (el) =>
                 el.textContent.trim()
             );
             expect(cardText).toBe('Welcome to Vibe Application!');
@@ -197,11 +234,12 @@ describe('Vibe Application E2E Tests', () => {
 
         test('should display click button', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             const button = await page.$('#hello-btn');
             expect(button).toBeTruthy();
 
-            const buttonText = await page.$eval('#hello-btn', el =>
+            const buttonText = await page.$eval('#hello-btn', (el) =>
                 el.textContent.trim()
             );
             expect(buttonText).toBe('Click me');
@@ -209,45 +247,49 @@ describe('Vibe Application E2E Tests', () => {
 
         test('should display footer', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
+            // Footer is now in the footer-container
             const footerText = await page.$eval(
-                'footer p',
-                el => el.textContent
+                '#footer-container footer p',
+                (el) => el.textContent
             );
-            expect(footerText).toBe('© 2024 Vibe Application');
+            expect(footerText).toContain('© 2024 Vibe Application');
         });
     });
 
     describe('Application Initialization', () => {
         test('should show initial welcome message', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             // Wait for the app to initialize
             await page.waitForSelector('#message .alert', { timeout: 5000 });
 
             const messageText = await page.$eval(
                 '#message .alert',
-                el => el.textContent
+                (el) => el.textContent
             );
             expect(messageText).toContain('Application loaded successfully!');
 
             const alertClass = await page.$eval(
                 '#message .alert',
-                el => el.className
+                (el) => el.className
             );
             expect(alertClass).toContain('alert-info');
         });
 
         test('should log initialization message to console', async () => {
             const consoleLogs = [];
-            page.on('console', msg => {
+            page.on('console', (msg) => {
                 consoleLogs.push(msg.text());
             });
 
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             // Wait a bit for console logs
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             expect(consoleLogs).toContain(
                 'Vibe Application loaded successfully!'
@@ -258,6 +300,7 @@ describe('Vibe Application E2E Tests', () => {
     describe('Button Click Functionality', () => {
         test('should display success message when button is clicked', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             // Wait for initial message to appear
             await page.waitForSelector('#message .alert');
@@ -266,20 +309,21 @@ describe('Vibe Application E2E Tests', () => {
             await page.click('#hello-btn');
 
             // Wait for new message
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
 
             const messageAlert = await page.$('#message .alert');
             expect(messageAlert).toBeTruthy();
 
             const alertClass = await page.$eval(
                 '#message .alert',
-                el => el.className
+                (el) => el.className
             );
             expect(alertClass).toContain('alert-success');
         });
 
         test('should display random messages on multiple clicks', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             // Wait for initial message
             await page.waitForSelector('#message .alert');
@@ -289,11 +333,11 @@ describe('Vibe Application E2E Tests', () => {
             // Click multiple times to test randomness
             for (let i = 0; i < 5; i++) {
                 await page.click('#hello-btn');
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise((resolve) => setTimeout(resolve, 300));
 
                 const messageText = await page.$eval(
                     '#message .alert',
-                    el => el.textContent
+                    (el) => el.textContent
                 );
                 messages.add(messageText);
             }
@@ -312,6 +356,7 @@ describe('Vibe Application E2E Tests', () => {
             ];
 
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
             await page.waitForSelector('#message .alert');
 
             let foundValidMessage = false;
@@ -319,14 +364,14 @@ describe('Vibe Application E2E Tests', () => {
             // Try clicking multiple times to get different messages
             for (let i = 0; i < 10; i++) {
                 await page.click('#hello-btn');
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise((resolve) => setTimeout(resolve, 200));
 
                 const messageText = await page.$eval(
                     '#message .alert',
-                    el => el.textContent
+                    (el) => el.textContent
                 );
 
-                if (expectedMessages.some(msg => messageText.includes(msg))) {
+                if (expectedMessages.some((msg) => messageText.includes(msg))) {
                     foundValidMessage = true;
                     break;
                 }
@@ -339,6 +384,7 @@ describe('Vibe Application E2E Tests', () => {
     describe('Message Display Features', () => {
         test('should show message with close button', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             await page.waitForSelector('#message .alert');
 
@@ -347,19 +393,20 @@ describe('Vibe Application E2E Tests', () => {
 
             const buttonLabel = await page.$eval(
                 '#message .alert .btn-close',
-                el => el.getAttribute('aria-label')
+                (el) => el.getAttribute('aria-label')
             );
             expect(buttonLabel).toBe('Close');
         });
 
         test('should have proper Bootstrap classes', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             await page.waitForSelector('#message .alert');
 
             const alertClasses = await page.$eval(
                 '#message .alert',
-                el => el.className
+                (el) => el.className
             );
             expect(alertClasses).toContain('alert');
             expect(alertClasses).toContain('alert-dismissible');
@@ -369,6 +416,7 @@ describe('Vibe Application E2E Tests', () => {
 
         test('should display message in correct container', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             await page.waitForSelector('#message .alert');
 
@@ -377,7 +425,7 @@ describe('Vibe Application E2E Tests', () => {
 
             const containerClass = await page.$eval(
                 '#message',
-                el => el.className
+                (el) => el.className
             );
             expect(containerClass).toContain('show');
         });
@@ -387,8 +435,9 @@ describe('Vibe Application E2E Tests', () => {
         test('should work on mobile viewport', async () => {
             await page.setViewport({ width: 375, height: 667 });
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
-            const header = await page.$('h1');
+            const header = await page.$('#header-container h1');
             expect(header).toBeTruthy();
 
             const button = await page.$('#hello-btn');
@@ -396,7 +445,7 @@ describe('Vibe Application E2E Tests', () => {
 
             // Test button click on mobile
             await page.click('#hello-btn');
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
 
             const message = await page.$('#message .alert');
             expect(message).toBeTruthy();
@@ -405,6 +454,7 @@ describe('Vibe Application E2E Tests', () => {
         test('should work on tablet viewport', async () => {
             await page.setViewport({ width: 768, height: 1024 });
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
 
             const card = await page.$('.card');
             expect(card).toBeTruthy();
@@ -417,29 +467,31 @@ describe('Vibe Application E2E Tests', () => {
     describe('Error Handling', () => {
         test('should handle JavaScript errors gracefully', async () => {
             const jsErrors = [];
-            page.on('pageerror', error => {
+            page.on('pageerror', (error) => {
                 jsErrors.push(error.message);
             });
 
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
             await page.click('#hello-btn');
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
             expect(jsErrors).toHaveLength(0);
         });
 
         test('should handle network errors gracefully', async () => {
             const failedRequests = [];
-            page.on('requestfailed', request => {
+            page.on('requestfailed', (request) => {
                 failedRequests.push(request.url());
             });
 
             await page.goto(BASE_URL);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await waitForDynamicContent();
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // Should not have failed requests for basic functionality
             const criticalFailures = failedRequests.filter(
-                url =>
+                (url) =>
                     url.includes('.js') ||
                     url.includes('.css') ||
                     url.includes('.html')
@@ -453,6 +505,7 @@ describe('Vibe Application E2E Tests', () => {
             const startTime = Date.now();
 
             await page.goto(BASE_URL, { waitUntil: 'networkidle2' });
+            await waitForDynamicContent();
 
             const loadTime = Date.now() - startTime;
             expect(loadTime).toBeLessThan(5000); // 5 seconds
@@ -460,6 +513,7 @@ describe('Vibe Application E2E Tests', () => {
 
         test('should respond to button clicks quickly', async () => {
             await page.goto(BASE_URL);
+            await waitForDynamicContent();
             await page.waitForSelector('#hello-btn');
 
             // Warm up - first click to initialize
@@ -480,6 +534,75 @@ describe('Vibe Application E2E Tests', () => {
 
             // More realistic timeout for E2E tests
             expect(responseTime).toBeLessThan(3000); // 3 seconds
+        });
+    });
+
+    describe('DRY Components', () => {
+        test('should have properly injected header', async () => {
+            await page.goto(BASE_URL);
+            await waitForDynamicContent();
+
+            const headerContainer = await page.$('#header-container');
+            expect(headerContainer).toBeTruthy();
+
+            const navigation = await page.$('#header-container nav');
+            expect(navigation).toBeTruthy();
+
+            const homeLink = await page.$(
+                '#header-container a[href="index.html"]'
+            );
+            const loginLink = await page.$(
+                '#header-container a[href="login.html"]'
+            );
+            const registerLink = await page.$(
+                '#header-container a[href="register.html"]'
+            );
+
+            expect(homeLink).toBeTruthy();
+            expect(loginLink).toBeTruthy();
+            expect(registerLink).toBeTruthy();
+        });
+
+        test('should have properly injected footer', async () => {
+            await page.goto(BASE_URL);
+            await waitForDynamicContent();
+
+            const footerContainer = await page.$('#footer-container');
+            expect(footerContainer).toBeTruthy();
+
+            const footerContent = await page.$eval(
+                '#footer-container',
+                (el) => el.innerHTML
+            );
+            expect(footerContent).toContain('© 2024 Vibe Application');
+        });
+
+        test('should navigate to login page', async () => {
+            await page.goto(BASE_URL);
+            await waitForDynamicContent();
+
+            await page.click('#header-container a[href="login.html"]');
+            await waitForDynamicContent();
+
+            const url = page.url();
+            expect(url).toContain('login.html');
+
+            const title = await page.title();
+            expect(title).toBe('Login - Vibe Application');
+        });
+
+        test('should navigate to register page', async () => {
+            await page.goto(BASE_URL);
+            await waitForDynamicContent();
+
+            await page.click('#header-container a[href="register.html"]');
+            await waitForDynamicContent();
+
+            const url = page.url();
+            expect(url).toContain('register.html');
+
+            const title = await page.title();
+            expect(title).toBe('Register - Vibe Application');
         });
     });
 });

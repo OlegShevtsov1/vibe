@@ -32,4 +32,4 @@ jobs:
             - name: Check CSS validation
               run: |
                   npm install -g css-validator
-                  css-validator css/style.css || true 
+                  css-validator css/style.css || true

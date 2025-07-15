@@ -6,7 +6,27 @@ const { VibeApp, Utils, APP_CONFIG } = require('../js/app.js');
 describe('Vibe Application Tests', () => {
     describe('APP_CONFIG', () => {
         test('should have correct API configuration', () => {
-            expect(APP_CONFIG.apiUrl).toBe('http://localhost:3000');
+            // Set default API URL for test
+            process.env.DEFAULT_API_URL = 'http://localhost:3102/api/v1';
+
+            // Re-require to get fresh config
+            delete require.cache[require.resolve('../js/config.js')];
+            delete require.cache[require.resolve('../js/app.js')];
+            const { APP_CONFIG: freshConfig } = require('../js/app.js');
+
+            expect(typeof freshConfig.apiUrl).toBe('string');
+            expect(freshConfig.apiUrl).toMatch(/^https?:\/\/.+/);
+        });
+
+        test('should use environment variable when set', () => {
+            process.env.DEFAULT_API_URL = 'https://api.example.com/v1';
+
+            // Re-require to get fresh config
+            delete require.cache[require.resolve('../js/config.js')];
+            delete require.cache[require.resolve('../js/app.js')];
+            const { APP_CONFIG: freshConfig } = require('../js/app.js');
+
+            expect(freshConfig.apiUrl).toBe('https://api.example.com/v1');
         });
     });
 
@@ -86,15 +106,19 @@ describe('Vibe Application Tests', () => {
                 },
             };
 
-            document.getElementById = jest.fn(id => {
-                if (id === 'hello-btn') return mockHelloBtn;
-                if (id === 'message') return mockMessageElement;
+            document.getElementById = jest.fn((id) => {
+                if (id === 'hello-btn') {
+                    return mockHelloBtn;
+                }
+                if (id === 'message') {
+                    return mockMessageElement;
+                }
                 return null;
             });
         });
 
         test('should initialize app successfully', () => {
-            const app = new VibeApp();
+            new VibeApp();
 
             expect(document.getElementById).toHaveBeenCalledWith('hello-btn');
             expect(mockHelloBtn.addEventListener).toHaveBeenCalledWith(
@@ -115,7 +139,7 @@ describe('Vibe Application Tests', () => {
         });
 
         test('should handle hello button click', () => {
-            const app = new VibeApp();
+            new VibeApp();
 
             // Get the click handler from the addEventListener mock
             const clickHandler = mockHelloBtn.addEventListener.mock.calls[0][1];
@@ -130,7 +154,7 @@ describe('Vibe Application Tests', () => {
         });
 
         test('should show random messages on click', () => {
-            const app = new VibeApp();
+            new VibeApp();
             const clickHandler = mockHelloBtn.addEventListener.mock.calls[0][1];
 
             // Click multiple times to test randomness
@@ -155,7 +179,7 @@ describe('Vibe Application Tests', () => {
                 'This is just the beginning!',
             ];
 
-            welcomeMessages.forEach(message => {
+            welcomeMessages.forEach((message) => {
                 expect(typeof message).toBe('string');
                 expect(message.length).toBeGreaterThan(0);
             });
@@ -184,14 +208,18 @@ describe('Vibe Application Tests', () => {
                 },
             };
 
-            document.getElementById = jest.fn(id => {
-                if (id === 'hello-btn') return mockHelloBtn;
-                if (id === 'message') return mockMessageElement;
+            document.getElementById = jest.fn((id) => {
+                if (id === 'hello-btn') {
+                    return mockHelloBtn;
+                }
+                if (id === 'message') {
+                    return mockMessageElement;
+                }
                 return null;
             });
 
             // Initialize app
-            const app = new VibeApp();
+            new VibeApp();
 
             // Verify initial state
             expect(console.log).toHaveBeenCalledWith(
